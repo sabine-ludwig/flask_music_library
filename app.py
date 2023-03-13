@@ -29,7 +29,7 @@ class Song(db.Model):
     title = db.Column(db.String(255), nullable=False)
     artist = db.Column(db.String(255), nullable=False)
     album = db.Column(db.String(255), nullable=False)
-    release_date = db.Columnn(db.date, nullable=False)
+    release_date = db.Column(db.Date(), nullable=False)
     genre = db.Column(db.String(255))
 
     def __repr__(self) -> str:
@@ -99,5 +99,5 @@ class SongResource(Resource):
         return song_schema.dump(song_from_db)
 
 # Routes
-api.add_resource(SongListResource, 'api/songs')
+api.add_resource(SongListResource, '/api/songs')
 api.add_resource(SongResource, '/api/songs/<int:pk>')
