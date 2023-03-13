@@ -48,7 +48,7 @@ class SongSchema(ma.Schema):
         fields = ("id", "title", "artist", "album", "release_date", "genre")
 
     @post_load
-    def create_song(self, data **kwargs):
+    def create_song(self, data, **kwargs):
         return Song(**data)
 
 song_schema = SongSchema()
@@ -69,6 +69,13 @@ class SongListResource(Resource):
             return song_schema.dump(new_song), 201
         except ValidationError as err:
             return err.messages, 400
+        
+class SongResources(Resource):
+    def get(self, pk):
+        song_from_db = Song.query.get_or_404(pk)
+        return song_schema.dump(song_from_db)
+
+
 
 
 # Routes
