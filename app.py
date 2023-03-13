@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from marshmallow import post_load, fields, ValidationError
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
 from dotenv import load_dotenv
@@ -35,10 +36,31 @@ class Song(db.Model):
         return f"{self.title} Artist: {self.artist} Album: {self.album} Release Date: {self.release_date} Genre: {self.genre}"
 
 # Schemas
+class SongSchema(ma.Schema):
+    id = fields.Integer(primary_key=True)
+    title = fields.String(required=True)
+    artist = fields.String(required=True)
+    album = fields.String(required=True)
+    release_date = fields.Date(required=True)
+    genre = fields.String()
 
+    class Meta:
+        fields = ("id", "title", "artist", "album", "release_date", "genre")
 
+    @post_load
+    def create_song(self, data **kwargs):
+        return Song(**data)
+
+song_schema = SongSchema()
+songs_schema = SongSchema(many=True)
 
 # Resources
+class SongListResource(Resource):
+    def get(self):
+        all_songs = Song.query.all()
+        return songs_schema.dump(all_songs)
+    
+    def post(self):
 
 
 
