@@ -61,7 +61,14 @@ class SongListResource(Resource):
         return songs_schema.dump(all_songs)
     
     def post(self):
-
+        form_data = request.get_json()
+        try:
+            new_song = song_schema.load(form_data)
+            db.session.add(new_song)
+            db.session.commit()
+            return song_schema.dump(new_song), 201
+        except ValidationError as err:
+            return err.messages, 400
 
 
 # Routes
