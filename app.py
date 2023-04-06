@@ -31,9 +31,10 @@ class Song(db.Model):
     album = db.Column(db.String(255), nullable=False)
     release_date = db.Column(db.Date(), nullable=False)
     genre = db.Column(db.String(255))
+    running_time = db.Column(db.Integer)
 
     def __repr__(self) -> str:
-        return f"{self.title} Artist: {self.artist} Album: {self.album} Release Date: {self.release_date} Genre: {self.genre}"
+        return f"Title: {self.title} Artist: {self.artist} Album: {self.album} Release Date: {self.release_date} Genre: {self.genre} Running Time: {self.running_time}"
 
 # Schemas
 class SongSchema(ma.Schema):
@@ -43,9 +44,10 @@ class SongSchema(ma.Schema):
     album = fields.String(required=True)
     release_date = fields.Date(required=True)
     genre = fields.String()
+    running_time = fields.Integer()
 
     class Meta:
-        fields = ("id", "title", "artist", "album", "release_date", "genre")
+        fields = ("id", "title", "artist", "album", "release_date", "genre", "running_time")
 
     @post_load
     def create_song(self, data, **kwargs):
@@ -58,7 +60,12 @@ songs_schema = SongSchema(many=True)
 class SongListResource(Resource):
     def get(self):
         all_songs = Song.query.all()
-        return songs_schema.dump(all_songs)
+        total_run_time = sum(song.running_time for song in all_songs)
+        custom_response = {
+            'songs': songs_schema.dump(all_songs),
+            'total_running_time': round(float(total_run_time / 60), 2)
+        }
+        return custom_response, 200
     
     def post(self):
         form_data = request.get_json()
@@ -94,6 +101,8 @@ class SongResource(Resource):
             song_from_db.release_date = request.json['release_date']
         if 'genre' in request.json:
             song_from_db.genre = request.json['genre']
+        if 'running_time' in request.json:
+            song_from_db.running_time = request.json['running_time']
 
         db.session.commit()
         return song_schema.dump(song_from_db)
@@ -101,3 +110,5 @@ class SongResource(Resource):
 # Routes
 api.add_resource(SongListResource, '/api/songs')
 api.add_resource(SongResource, '/api/songs/<int:pk>')
+
+
